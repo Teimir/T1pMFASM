@@ -126,7 +126,7 @@ always @(posedge clk) begin
 				OUT_R: 
 					data_out <= RF[ins[7:5]];
 				OUT_RM: 
-					data_out <= mem[RF[ins[7:5]]];
+					data_out <= mem[{RF[0],RF[ins[7:5]]}];
 				INC: 
 					RF[ins[7:5]] <= RF[ins[7:5]] + 8'b1;
 				DEC: 
@@ -134,32 +134,32 @@ always @(posedge clk) begin
 				MOV_R_C: 
 					RF[ins[7:5]] <= data;
 				MOV_R_CM: 
-					RF[ins[7:5]] <= mem[data];
+					RF[ins[7:5]] <= mem[{RF[0], data}];
 				MOV_CM_R: 
-					mem[data] <= RF[ins[7:5]];
+					mem[{RF[0], data}] <= RF[ins[7:5]];
 				ADD_R_C: 
 					RF[ins[7:5]] <= RF[ins[7:5]] + data;
 				ADD_R_CM: 
-					RF[ins[7:5]] <= RF[ins[7:5]] + mem[data];
+					RF[ins[7:5]] <= RF[ins[7:5]] + mem[{RF[0], data}];
 				ADD_CM_R: 
-					mem[data] <= mem[data] + RF[ins[7:5]];
+					mem[{RF[0], data}] <= mem[data] + RF[ins[7:5]];
 				SUB_R_C: 
 					RF[ins[7:5]] <= RF[ins[7:5]] - data;
 				SUB_R_CM: 
-					RF[ins[7:5]] <= RF[ins[7:5]] - mem[data];
+					RF[ins[7:5]] <= RF[ins[7:5]] - mem[{RF[0], data}];
 				SUB_CM_R: 
-					mem[data] <= mem[data] - RF[ins[7:5]];
+					mem[{RF[0], data}] <= mem[{RF[0], data}] - RF[ins[7:5]];
 				CMP_R_C:begin
 					rflags[ZF] <= RF[ins[7:5]] == data;
 					rflags[AF] <= RF[ins[7:5]] > data;
 				end
 				CMP_R_CM:begin
-					rflags[ZF] <= RF[ins[7:5]] == mem[data];
-					rflags[AF] <= RF[ins[7:5]] > mem[data];
+					rflags[ZF] <= RF[ins[7:5]] == mem[{RF[0], data}];
+					rflags[AF] <= RF[ins[7:5]] > mem[{RF[0], data}];
 				end
 				CMP_CM_R:begin
-					rflags[ZF] <= mem[data] == RF[ins[7:5]];
-					rflags[AF] <= mem[data] > RF[ins[7:5]];
+					rflags[ZF] <= mem[{RF[0], data}] == RF[ins[7:5]];
+					rflags[AF] <= mem[{RF[0], data}] > RF[ins[7:5]];
 				end
 				JMP_R:begin
 					incip = 0;
@@ -186,7 +186,7 @@ always @(posedge clk) begin
 					rin <= 8'hFF;
 				end
 				IN_RM:begin
-					mem[RF[ins[7:5]]] <= data_in;
+					mem[{RF[0], RF[ins[7:5]]}] <= data_in;
 					rin <= 8'hFF;
 				end
 				INS_C: 
@@ -194,10 +194,10 @@ always @(posedge clk) begin
 						OUT_C:
 							data_out <= data;
 						OUT_CM: 
-							data_out <= mem[data];
+							data_out <= mem[{RF[0], data}];
 						JMP_CM:begin
 							incip = 0;
-							ip <= {RF[0], mem[data]}; //Аналогично
+							ip <= {RF[0], mem[{RF[1],data}]}; //Аналогично
 						end
 						JMP_C:begin
 							incip = 0;
@@ -213,39 +213,39 @@ always @(posedge clk) begin
 						MOV_R_R:
 							RF[ins[7:5]] <= RF[data[7:5]];
 						MOV_R_RM:
-							RF[ins[7:5]] <= mem[RF[data[7:5]]];
+							RF[ins[7:5]] <= mem[{RF[0], RF[data[7:5]]}];
 						MOV_RM_R:
-							mem[RF[ins[7:5]]] <= RF[data[7:5]];
+							mem[{RF[0], RF[ins[7:5]]}] <= RF[data[7:5]];
 						ADD_R_R:
 							RF[ins[7:5]] <= RF[ins[7:5]] + RF[data[7:5]];
 						ADD_R_RM:
-							RF[ins[7:5]] <= RF[ins[7:5]] + mem[RF[data[7:5]]];
+							RF[ins[7:5]] <= RF[ins[7:5]] + mem[{RF[0],RF[data[7:5]]}];
 						ADD_RM_R:
-							mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] + RF[data[7:5]];
+							mem[{RF[0], RF[ins[7:5]]}] <= mem[{RF[0],RF[ins[7:5]]}] + RF[data[7:5]];
 						SUB_R_R:
 							RF[ins[7:5]] <= RF[ins[7:5]] - RF[data[7:5]];
 						SUB_R_RM:
-							RF[ins[7:5]] <= RF[ins[7:5]] - mem[RF[data[7:5]]];
+							RF[ins[7:5]] <= RF[ins[7:5]] - mem[{RF[0], RF[data[7:5]]}];
 						SUB_RM_R:
-							mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] - RF[data[7:5]];
+							mem[{RF[0], RF[ins[7:5]]}] <= mem[{RF[0], RF[ins[7:5]]}] - RF[data[7:5]];
 						CMP_R_R:begin
 							rflags[ZF] <= RF[ins[7:5]] == RF[data[7:5]];
 							rflags[AF] <= RF[ins[7:5]] > RF[data[7:5]];
 						end
 						CMP_R_RM:begin
-							rflags[ZF] <= RF[ins[7:5]] == mem[RF[data[7:5]]];
-							rflags[AF] <= RF[ins[7:5]] > mem[RF[data[7:5]]];
+							rflags[ZF] <= RF[ins[7:5]] == mem[{RF[0], RF[data[7:5]]}];
+							rflags[AF] <= RF[ins[7:5]] > mem[{RF[0], RF[data[7:5]]}];
 						end
 						CMP_RM_R:begin
-							rflags[ZF] <= mem[RF[ins[7:5]]] == RF[data[7:5]];
-							rflags[AF] <= mem[RF[ins[7:5]]] > RF[data[7:5]];
+							rflags[ZF] <= mem[{RF[0], RF[ins[7:5]]}] == RF[data[7:5]];
+							rflags[AF] <= mem[{RF[0], RF[ins[7:5]]}] > RF[data[7:5]];
 						end
 						JF_R: begin
 							ip <= {RF[0], RF[data[7:5]]};
 							incip = !(rflags[ins[6:5]] == ins[7]);
 						end
 						JF_RM: begin
-							ip <= {RF[0], mem[RF[data[7:5]]]};
+							ip <= {RF[0], mem[{RF[1], RF[data[7:5]]}]};
 							incip = !(rflags[ins[6:5]] == ins[7]);
 						end
 					endcase
