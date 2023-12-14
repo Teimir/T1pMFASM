@@ -124,6 +124,16 @@ always @(posedge clk) begin
 		end
 		EXEC: begin
 			case(ins[4:3])
+				2'b10: begin
+					case(ins[2:0])
+						HLT:
+							stop <= 1;
+						LDFZ:
+							rflags <= RF[0][3:0];
+						STFZ:
+							RF[0] <= rflags;
+					endcase
+				end
 				2'b00: begin
 					case(ins[2:0])
 						OUT_R:
@@ -167,11 +177,11 @@ always @(posedge clk) begin
 							rflags[AF] <= RF[ins[7:5]] > data;
 						end
 						JF_C: begin
-							if (rflags[ins[6:5]])
+							if (rflags[ins[6:5]]==ins[7])
 								ip <= data;
 						end
 						JF_CM: begin
-							if (rflags[ins[6:5]])
+							if (rflags[ins[6:5]]==ins[7])
 								ip <= {mem[data+1], mem[data]};
 						end
 					endcase
@@ -234,21 +244,27 @@ always @(posedge clk) begin
 									RF[ins[7:5]] <= RF[ins[7:5]] >> mem[RF[data[7:5]]];
 								SHR_RM_R:
 									mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] >> RF[data[7:5]];
+								SHL_R_R:
+									RF[ins[7:5]] <= RF[ins[7:5]] << RF[data[7:5]];
+								SHL_R_RM:
+									RF[ins[7:5]] <= RF[ins[7:5]] << mem[RF[data[7:5]]];
+								SHL_RM_R:
+									mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] << RF[data[7:5]];
 							endcase
 						end
 						JF_R: begin
-							if (rflags[ins[6:5]])
+							if (rflags[ins[6:5]]==ins[7])
 								ip <= RF[data[7:5]];
 						end
 						JF_RM: begin
-							if (rflags[ins[6:5]])
+							if (rflags[ins[6:5]]==ins[7])
 								ip <= mem[RF[data[7:5]]];
 						end
 					endcase
 			    end
 			endcase
-			if(ins[2:0] != 3'd4 || ins[2:0] != 3'd5) 
-				ip <= ip + incip;
+			if(ins[2:0] != 3'd4 && ins[2:0] != 3'd5) 
+				ip <= ip + 8'b1;
 			state <= IDLE;
 		end
 	endcase
