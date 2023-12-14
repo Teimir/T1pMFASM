@@ -49,38 +49,47 @@ parameter IN_R = 5'b110;
 parameter IN_RM = 5'b111;
 
 //ins[4:3] == 01 Двухбайтовые
-parameter MOV = 5'b000;
-	parameter MOV_R_R = 5'b001;
-	parameter MOV_R_RM = 5'b010;
-	parameter MOV_RM_R = 5'b011;
-parameter ADD = 5'b001;
-	parameter ADD_R_R = 5'b001;
-	parameter ADD_R_RM = 5'b010;
-	parameter ADD_RM_R = 5'b011; 
-parameter SUB = 5'b010;
-	parameter SUB_R_R = 5'b001;
-	parameter SUB_R_RM = 5'b010;
-	parameter SUB_RM_R = 5'b011; 
-parameter CMP = 5'b110;
-	parameter CMP_R_R = 5'b001;
-	parameter CMP_R_RM = 5'b010;
-	parameter CMP_RM_R = 5'b011; 
-parameter LOG = 5'b111;
-	parameter AND_R_R = 5'b001;
-	parameter OR_R_R = 5'b010;
-	parameter XOR_R_R = 5'b011;
+parameter FIRST = 5'b000;		//Первый набор инструкций
+	parameter MOV_R_R = 5'h00;
+	parameter MOV_R_RM = 5'h01;
+	parameter MOV_RM_R = 5'h02;
+	parameter ADD_R_R = 5'h03;
+	parameter ADD_R_RM = 5'h04;
+	parameter ADD_RM_R = 5'h05; 
+	parameter SUB_R_R = 5'h06;
+	parameter SUB_R_RM = 5'h07;
+	parameter SUB_RM_R = 5'h08; 
+	parameter CMP_R_R = 5'h09;
+	parameter CMP_R_RM = 5'h0A;
+	parameter CMP_RM_R = 5'h0B;
+	parameter AND_R_R = 5'h0C;
+	parameter AND_R_RM = 5'h0D;
+	parameter AND_RM_R = 5'h0E;
+	parameter OR_R_R = 5'h0D;
+	parameter OR_R_RM = 5'h0F;
+	parameter OR_RM_R = 5'h10;
+	parameter XOR_R_R = 5'h11;
+	parameter XOR_R_RM = 5'h12;
+	parameter XOR_RM_R = 5'h13;
+	parameter SHR_R_R = 5'h14;
+	parameter SHR_R_RM = 5'h15;
+	parameter SHR_RM_R = 5'h16;
+	parameter SHL_R_R = 5'h17;
+	parameter SHL_R_RM = 5'h18;
+	parameter SHL_RM_R = 5'h19;
+//значения для возможных дальнейших расширений
 parameter JF_R = 5'b100;
 parameter JF_RM = 5'b101;
 
 //ins[4:3] == 11 Трёхбайтовые
 parameter MOV_R_C = 5'b000;
-parameter MOV_R_CM = 5'b110;
-parameter MOV_CM_R = 5'b111;
 parameter ADD_R_C = 5'b001;
 parameter SUB_R_C = 5'b010;
 parameter CMP_R_C = 5'b011;
 parameter JF_C = 5'b100;
 parameter JF_CM = 5'b101;
+parameter MOV_R_CM = 5'b110;
+parameter MOV_CM_R = 5'b111;
 
 
 
@@ -169,38 +178,26 @@ always @(posedge clk) begin
 			    end
 			    2'b01: begin
 			    	case(ins[2:0])
-			    		MOV: begin
-							case(data[2:0])
+			    		FIRST: begin
+							case(data[4:0])
 								MOV_R_R:
 									RF[ins[7:5]] <= RF[data[7:5]];
 								MOV_R_RM:
 									RF[ins[7:5]] <= mem[RF[data[7:5]]];
 								MOV_RM_R:
 									mem[RF[ins[7:5]]] <= RF[data[7:5]];
-							endcase
-						end
-						ADD: begin
-							case(data[2:0])
 								ADD_R_R:
 									RF[ins[7:5]] <= RF[ins[7:5]] + RF[data[7:5]];
 								ADD_R_RM:
 									RF[ins[7:5]] <= RF[ins[7:5]] + mem[RF[data[7:5]]];
 								ADD_RM_R:
 									mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] + RF[data[7:5]];
-							endcase
-						end
-						SUB: begin
-							case(data[2:0])
 								SUB_R_R:
 									RF[ins[7:5]] <= RF[ins[7:5]] - RF[data[7:5]];
 								SUB_R_RM:
 									RF[ins[7:5]] <= RF[ins[7:5]] - mem[RF[data[7:5]]];
 								SUB_RM_R:
 									mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] - RF[data[7:5]];
-							endcase
-						end
-						CMP:  begin
-							case(data[2:0])
 								CMP_R_R:begin
 									rflags[ZF] <= RF[ins[7:5]] == RF[data[7:5]];
 									rflags[AF] <= RF[ins[7:5]] > RF[data[7:5]];
@@ -213,16 +210,30 @@ always @(posedge clk) begin
 									rflags[ZF] <= mem[RF[ins[7:5]]] == RF[data[7:5]];
 									rflags[AF] <= mem[RF[ins[7:5]]] > RF[data[7:5]];
 								end
-							endcase
-						end
-						LOG:  begin
-							case(data[2:0])
 								AND_R_R:
 									RF[ins[7:5]] <= RF[ins[7:5]] & RF[data[7:5]];
+								AND_R_RM:
+									RF[ins[7:5]] <= RF[ins[7:5]] & mem[RF[data[7:5]]];
+								AND_RM_R:
+									mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] & RF[data[7:5]];
 								OR_R_R:
 									RF[ins[7:5]] <= RF[ins[7:5]] | RF[data[7:5]];
+								OR_R_RM:
+									RF[ins[7:5]] <= RF[ins[7:5]] | mem[RF[data[7:5]]];
+								OR_RM_R:
+									mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] | RF[data[7:5]];
 								XOR_R_R:
 									RF[ins[7:5]] <= RF[ins[7:5]] ^ RF[data[7:5]];
+								XOR_R_RM:
+									RF[ins[7:5]] <= RF[ins[7:5]] ^ mem[RF[data[7:5]]];
+								XOR_RM_R:
+									mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] ^ RF[data[7:5]];
+								SHR_R_R:
+									RF[ins[7:5]] <= RF[ins[7:5]] >> RF[data[7:5]];
+								SHR_R_RM:
+									RF[ins[7:5]] <= RF[ins[7:5]] >> mem[RF[data[7:5]]];
+								SHR_RM_R:
+									mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] >> RF[data[7:5]];
 							endcase
 						end
 						JF_R: begin

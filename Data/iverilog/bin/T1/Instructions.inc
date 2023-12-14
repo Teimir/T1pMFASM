@@ -1,51 +1,40 @@
-OUT_R = 00h
-OUT_RM = 01h
-JMP_R = 02h
-JMP_RM = 03h
-INC_I = 04h
-DEC_I = 05h
-IN_R = 06h
-IN_RM = 07h
-ZOI = 08h
-	NOP_I = (000b shl 5) + ZOI
-	HLT_I = (001b shl 5) + ZOI
-	STFZ = (010b shl 5) + ZOI
-	LDFZ = (011b shl 5) + ZOI
-INS_R_R = 09h
-	MOV_R_R = 01h
-	MOV_R_RM = 02h
-	MOV_RM_R = 03h
-	ADD_R_R = 04h
-	ADD_R_RM = 05h
-	ADD_RM_R = 06h
-	SUB_R_R = 07h
-	SUB_R_RM = 08h
-	SUB_RM_R = 09h
-	CMP_R_R = 0Ah
-	CMP_R_RM = 0Bh
-	CMP_RM_R = 0Ch
-	JF_R_R = 0Dh
-	JF_R_RM = 0Ah
-INS_C = 0Ah
-	OUT_C = (000b shl 5) + INS_C
-	OUT_CM = (001b shl 5) + INS_C
-	JMP_C = (010b shl 5) + INS_C
-	JMP_CM = (011b shl 5) + INS_C
-	IN_CM = (100b shl 5) + INS_C
-MOV_R_C = 0Bh
-MOV_R_CM = 0Ch
-MOV_CM_R = 0Dh
-ADD_R_C = 0Eh
-ADD_R_CM = 0Fh
-ADD_CM_R = 10h
-SUB_R_C = 11h
-SUB_R_CM = 12h
-SUB_CM_R = 13h
-CMP_R_C = 14h
-CMP_R_CM = 15h
-CMP_CM_R = 16h
-JF_R_C = 17h
-JF_R_CM = 18h
+NOP_I equ 10000b
+HLT_I equ 10001b
+ONE_BYTE equ 00b
+TWO_BYTE equ 01b
+THREE_BYTE equ 11b
+FIRST equ 0
+	MOV_I equ FIRST
+	MOV_I_R_R equ 0x00
+	MOV_I_R_RM equ 0x01
+	MOV_I_RM_R equ 0x02
+	ADD_I_R_R = 0x03
+	ADD_I_R_RM = 0x04
+	ADD_I_RM_R = 0x05 
+	SUB_I_R_R = 0x06
+	SUB_I_R_RM = 0x07
+	SUB_I_RM_R = 0x08 
+	CMP_I_R_R = 0x09
+	CMP_I_R_RM = 0x0A
+	CMP_I_RM_R = 0x0B
+	AND_I_R_R = 0x0C
+	AND_I_R_RM = 0x0D
+	AND_I_RM_R = 0x0E
+	OR_I_R_R = 0x0D
+	OR_I_R_RM = 0x0F
+	OR_I_RM_R = 0x10
+	XOR_I_R_R = 0x11
+	XOR_I_R_RM = 0x12
+	XOR_I_RM_R = 0x13
+	SHR_I_R_R = 0x14
+	SHR_I_R_RM = 0x15
+	SHR_I_RM_R = 0x16
+	SHL_I_R_R = 0x17
+	SHL_I_R_RM = 0x18
+	SHL_I_RM_R = 0x19
+MOV_I_R_C EQU 000b
+MOV_I_R_CM equ 110b
+MOV_I_CM_R equ 111b
 
 ; macro INS_R_R instr*, op1*, op2*{
 ; 	db INS_R_R + op1 shl 5
@@ -77,21 +66,21 @@ local IsReg
 	IsReg = 0
 	match [reg:num], arg1\{
 		IsReg = 1
-		db instr#\_RM + num shl 5
+		db instr#\_RM + ONE_BYTE shl 3 + num shl 5
 		rept 0\{
 	\}
 	match reg:num, arg1\{
 		IsReg = 1
-		db instr#\_R + num shl 5
+		db instr#\_R + ONE_BYTE shl 3 + num shl 5
 	\}
 	if IsReg = 0
 		match [const], arg1\{
 			IsReg = 1
-			db instr#\_CM
+			db instr#\_CM + THREE_BYTE shl 3 + num shl 5
 			dw const 
 		\}
 		if IsReg = 0
-			db instr#\_C
+			db instr#\_C + THREE_BYTE shl 3 + num shl 5
 			dw arg1 
 		end if
 	end if
@@ -115,7 +104,7 @@ local test1
 	match [reg1:num1], arg1\{
 		test1 = 1
 		match reg2:num2, arg2\\{
-			db INS_R_R + num1 shl 5
+			db instr + (TWO_BYTE shl 3) + (num1 shl 5)
 			db instr#\_RM_R + num2 shl 5
 		\\}
 		rept 0\{
@@ -123,7 +112,7 @@ local test1
 	match [const], arg1\{
 		test1 = 1
 		match reg2:num2, arg2\\{
-			db instr#\_CM_R + num2 shl 5
+			db instr#\_CM_R + (THREE_BYTE shl 3) + (num2 shl 5)
 			dw const
 		\\}
 	\}
@@ -133,23 +122,23 @@ local test1
 			default = 1
 			match [reg2:num2], arg2\\{
 				default = 0
-				db INS_R_R + num1 shl 5
+				db instr + (TWO_BYTE shl 3) + (num1 shl 5)
 				db instr#\_R_RM + num2 shl 5
 				rept 0\\{
 			\\}
 			match reg2:num2, arg2\\{
 				default = 0
-				db INS_R_R + num1 shl 5
+				db instr + (TWO_BYTE shl 3) + (num1 shl 5)
 				db instr#\_R_R + num2 shl 5
 			\\}
 			if default = 1
 				match [const], arg2\\{
 					default = 0
-					db instr#\_R_CM + num1 shl 5
+					db instr#\_R_CM + (THREE_BYTE shl 3) + (num1 shl 5)
 					dw const
 				\\}
 				if default = 1
-					db instr#\_R_C + num1 shl 5
+					db instr#\_R_C + (THREE_BYTE shl 3) + (num1 shl 5)
 					dw arg2
 				end if
 			end if
@@ -158,7 +147,7 @@ local test1
 }
 
 macro mov arg1*, arg2*{
-	INS_R_R MOV, arg1, arg2
+	INS_R_R MOV_I, arg1, arg2
 }
 
 macro add arg1*, arg2*{
