@@ -2,7 +2,7 @@ module SimpleProcessor(
 	input wire clk,
 	input wire rst,
 	input wire [31:0] data_in,
-	output reg [31:0] data_out,
+	output reg [31:0] data_out
 );
 
 integer i;

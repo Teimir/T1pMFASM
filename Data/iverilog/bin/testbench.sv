@@ -26,7 +26,7 @@ module SimpleProcessor_tb;
     // Monitor the result
     initial begin
         clk = 0;
-        $monitor("Time %t | Result: %h | Reg: %h", $time, data_out);
+        $monitor("Time %t | Result: %h", $time, data_out);
         #3000 $finish; // Finish the simulation
     end
 endmodule
