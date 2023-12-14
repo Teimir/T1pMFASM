@@ -11,13 +11,7 @@ ZOI = 08h
 	HLT_I = (001b shl 5) + ZOI
 	STFZ = (010b shl 5) + ZOI
 	LDFZ = (011b shl 5) + ZOI
-INS_C = 09h
-	OUT_C = (000b shl 5) + INS_C
-	OUT_CM = (001b shl 5) + INS_C
-	JMP_C = (010b shl 5) + INS_C
-	JMP_CM = (011b shl 5) + INS_C
-	IN_CM = (100b shl 5) + INS_C
-INS_R_R = 0Ah
+INS_R_R = 09h
 	MOV_R_R = 01h
 	MOV_R_RM = 02h
 	MOV_RM_R = 03h
@@ -32,6 +26,12 @@ INS_R_R = 0Ah
 	CMP_RM_R = 0Ch
 	JF_R_R = 0Dh
 	JF_R_RM = 0Ah
+INS_C = 0Ah
+	OUT_C = (000b shl 5) + INS_C
+	OUT_CM = (001b shl 5) + INS_C
+	JMP_C = (010b shl 5) + INS_C
+	JMP_CM = (011b shl 5) + INS_C
+	IN_CM = (100b shl 5) + INS_C
 MOV_R_C = 0Bh
 MOV_R_CM = 0Ch
 MOV_CM_R = 0Dh
@@ -88,11 +88,11 @@ local IsReg
 		match [const], arg1\{
 			IsReg = 1
 			db instr#\_CM
-			db const 
+			dw const 
 		\}
 		if IsReg = 0
 			db instr#\_C
-			db arg1 
+			dw arg1 
 		end if
 	end if
 }
@@ -124,7 +124,7 @@ local test1
 		test1 = 1
 		match reg2:num2, arg2\\{
 			db instr#\_CM_R + num2 shl 5
-			db const
+			dw const
 		\\}
 	\}
 	if test1 = 0
@@ -146,11 +146,11 @@ local test1
 				match [const], arg2\\{
 					default = 0
 					db instr#\_R_CM + num1 shl 5
-					db const
+					dw const
 				\\}
 				if default = 1
 					db instr#\_R_C + num1 shl 5
-					db arg2
+					dw arg2
 				end if
 			end if
 		\}

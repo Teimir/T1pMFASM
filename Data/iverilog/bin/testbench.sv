@@ -3,10 +3,10 @@ module SimpleProcessor_tb;
     // Inputs
     reg clk;
     reg rst;
-    reg [31:0] data_in;
+    reg [15:0] data_in;
 
     // Outputs
-    wire [31:0] data_out;
+    wire [15:0] data_out;
 
     // Instantiate the SimpleProcessor module
     SimpleProcessor dut (
