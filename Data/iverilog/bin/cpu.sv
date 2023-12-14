@@ -14,26 +14,26 @@ reg [7:0] rin = 8'b0;
 
 //Регистры для работы с памятью
 reg [7:0] mem [0:65535]; //Сама память
-reg [15:0] ip = 8'b0;
-reg [7:0] ins = 8'b0;
-reg [7:0] data = 8'b0;
-reg [7:0] exdata = 8'b0;
+reg [15:0] ip = 8'b0;    //Указатель инструкции
+reg [7:0] ins = 8'b0;    //Сама инструкция
+reg [7:0] data = 8'b0;   //Доп поле данных
+reg [7:0] exdata = 8'b0; //Расширенные данные, возможно не используются
 
 //Конечный автомат
 reg [2:0] state = IDLE; //Текущее состояние
-reg stop = 0; //Флаг остановки
-reg incip = 1; //Хз что это
+reg stop = 0;           //Флаг остановки
+reg incip = 1;          //Флаг инкремента
 
-//Регистр флагов
-reg [2:0] rflags = 4'b00;
+//Флаги
+reg [2:0] rflags = 4'b00; //Сам Регистр
 	parameter ZF = 2'b00; //адрес флага равенство
 	parameter AF = 2'b01; //адрес флага больше
  
-//Описание опкодов
-parameter IDLE = 3'b00;
-parameter FTHOP = 3'b01;
-parameter FTHD = 3'b10;
-parameter EXEC = 3'b11;
+//Описание состояний конечного автомата
+parameter IDLE = 3'b00;  //Айдл
+parameter FTHOP = 3'b01; //Получение операции 
+parameter FTHD = 3'b10;  //Получение данных
+parameter EXEC = 3'b11;  //Выполнение
 
 parameter OUT_R = 8'h00;
 parameter OUT_RM = 8'h01;
@@ -87,7 +87,7 @@ parameter JF_CM = 8'h18;
 
 //Описание работы
 always @(posedge clk) begin
-	incip = 1; //Хз что это
+	incip = 1; //Установка флага инкремента в 1
 
 	//Конечный автомат
 	case(state)
@@ -96,9 +96,9 @@ always @(posedge clk) begin
 				state <= FTHOP;
 		end
 		FTHOP: begin
-			ins <= mem[ip];
-			if (mem[ip][4:0] > ZOI[4:0] || mem[ip][4:0] == JMP_RM || mem[ip][4:0] == JMP_R) begin
-				ip <= ip + 8'b1;
+			ins <= mem[ip]; //Получение инструкции
+			if (mem[ip][4:0] > ZOI[4:0] || mem[ip] == JMP_RM || mem[ip] == JMP_R) begin
+				ip <= ip + 16'b1;
 				state <= FTHD;
 			end
 			else begin
@@ -117,6 +117,7 @@ always @(posedge clk) begin
 							state <= IDLE;
 						HLT:
 							stop <= 1;
+							state <= IDLE;
 						STFZ:
 							RF[0] <= rflags;
 						LDFZ:
@@ -163,22 +164,22 @@ always @(posedge clk) begin
 				end
 				JMP_R:begin
 					incip = 0;
-					ip <= {data, RF[ins[7:5]]};
+					ip <= {RF[0], RF[ins[7:5]]}; //Добавил переход по шине из регистра ноль и по выбору
 				end
 				JMP_RM:begin
 					incip = 0;
-					ip <= {data, mem[RF[ins[7:5]]]};
+					ip <= {RF[0], mem[RF[ins[7:5]]]}; //Добавил переход по шине из регистра ноль и памяти
 				end
 				INC:
 					RF[ins[7:5]] <= RF[ins[7:5]] + 8'b1;
 				DEC:
 					RF[ins[7:5]] <= RF[ins[7:5]] - 8'b1;
 				JF_C: begin
-					ip <= data;
+					ip <= {RF[0], data}; //Добавил переход по шине из регистра ноль и доп данных
 					incip = !(rflags[ins[6:5]] == ins[7]);
 				end
 				JF_CM: begin
-					ip <= mem[data];
+					ip <= {RF[0], mem[data]}; //Добавил переход по шине из регистра ноль и памяти по адр. доп данных
 					incip = !(rflags[ins[6:5]] == ins[7]);
 				end
 				IN_R:begin
@@ -197,11 +198,11 @@ always @(posedge clk) begin
 							rout <= mem[data];
 						JMP_CM:begin
 							incip = 0;
-							ip <= mem[data];
+							ip <= {RF[0], mem[data]}; //Аналогично
 						end
 						JMP_C:begin
 							incip = 0;
-							ip <= data;
+							ip <= {RF[0], data}; //Аналогично
 						end
 						IN_CM:begin
 							mem[data] <= data_in;
@@ -241,11 +242,11 @@ always @(posedge clk) begin
 							rflags[AF] <= mem[RF[ins[7:5]]] > RF[data[7:5]];
 						end
 						JF_R: begin
-							ip <= RF[data[7:5]];
+							ip <= {RF[0], RF[data[7:5]]};
 							incip = !(rflags[ins[6:5]] == ins[7]);
 						end
 						JF_RM: begin
-							ip <= mem[RF[data[7:5]]];
+							ip <= {RF[0], mem[RF[data[7:5]]]};
 							incip = !(rflags[ins[6:5]] == ins[7]);
 						end
 					endcase
