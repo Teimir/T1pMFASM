@@ -32,16 +32,15 @@ parameter FTHD1 = 3'b10;
 parameter FTHD2 = 3'b100;
 parameter EXEC = 3'b11;
 
-
-parameter ZOI = 5'b01000;
-	parameter NOP = 3'b000;		//05
-	parameter HLT = 3'b001;		//25
-	parameter STFZ = 3'b010;
-	parameter LDFZ = 3'b011;
+//ins[4:3] == 10 Спец
+parameter NOP = 3'b000;		
+parameter HLT = 3'b001;		
+parameter STFZ = 3'b010;
+parameter LDFZ = 3'b011;
 
 //ins[4:3] == 00 Однобайтовые
 parameter OUT_R = 5'b000;
-parameter OUT_RM = 5'0001;
+parameter OUT_RM = 5'b0001;
 parameter JMP_R = 5'b100;
 parameter JMP_RM =  5'b101;
 parameter INC = 5'b010;
@@ -49,16 +48,27 @@ parameter DEC = 5'b011;
 parameter IN_R = 5'b110;
 parameter IN_RM = 5'b111;
 
-//ins[4:3] == 01 Двухбайтовые 
-parameter MOV_R_R = 5'b000;
-parameter MOV_R_RM = 5'b000;
-parameter MOV_RM_R = 5'b000;
-parameter ADD_R_R = 5'b000;
-parameter ADD_R_RM = 5'b000;
-parameter SUB_R_R = 5'b000;
-parameter SUB_R_RM = 5'b000;
-parameter CMP_R_R = 5'b000;
-parameter CMP_R_RM = 5'b000;
+//ins[4:3] == 01 Двухбайтовые
+parameter MOV = 5'b000;
+	parameter MOV_R_R = 5'b001;
+	parameter MOV_R_RM = 5'b010;
+	parameter MOV_RM_R = 5'b011;
+parameter ADD = 5'b001;
+	parameter ADD_R_R = 5'b001;
+	parameter ADD_R_RM = 5'b010;
+	parameter ADD_RM_R = 5'b011; 
+parameter SUB = 5'b010;
+	parameter SUB_R_R = 5'b001;
+	parameter SUB_R_RM = 5'b010;
+	parameter SUB_RM_R = 5'b011; 
+parameter CMP = 5'b110;
+	parameter CMP_R_R = 5'b001;
+	parameter CMP_R_RM = 5'b010;
+	parameter CMP_RM_R = 5'b011; 
+parameter LOG = 5'b111;
+	parameter AND_R_R = 5'b001;
+	parameter OR_R_R = 5'b010;
+	parameter XOR_R_R = 5'b011;
 parameter JF_R = 5'b100;
 parameter JF_RM = 5'b101;
 
@@ -75,44 +85,23 @@ parameter JF_CM = 5'b101;
 
 
 
-parameter INS_R_R = 8'h09;
-	parameter MOV_R_R = 8'h01;
-	parameter MOV_R_RM = 8'h02;
-	parameter MOV_RM_R = 8'h03;
-	parameter ADD_R_R = 8'h04;
-	parameter ADD_R_RM = 8'h05;
-	parameter ADD_RM_R = 8'h06;
-	parameter SUB_R_R = 8'h07;
-	parameter SUB_R_RM = 8'h08;
-	parameter SUB_RM_R = 8'h09;
-	parameter CMP_R_R = 8'h0A;
-	parameter CMP_R_RM = 8'h0B;
-	parameter CMP_RM_R = 8'h0C;
-	parameter JF_R = 8'h0D;
-	parameter JF_RM = 8'h0E;
-parameter INS_C = 8'h0A;
-	parameter OUT_C = 3'b000;
-	parameter OUT_CM = 3'b001;
-	parameter JMP_C = 3'b010;
-	parameter JMP_CM = 3'b011;
-	parameter IN_CM = 3'b100;
-
-
+//Конченый автомат
 always @(posedge clk) begin
 	case(state)
-		IDLE: begin
-			if (stop == 0) 
+		IDLE: begin //Состояние айдл
+			if (stop == 0) //Стоп опущен - работаем
 				state <= FTHOP;
 		end
 		FTHOP: begin
-			ins <= mem[ip];
-			if (mem[ip][4:3] == 2'b00) state <= EXEC;
-			if (mem[ip][3]) begin
+			ins <= mem[ip]; //Получаем инструкцию
+			if (mem[ip][3]) begin //байт больше чем 1
 				ip <= ip + 16'b1;
 				state <= FTHD1;
 			end
+			else //Если однобайтовая - идём выполнять
+				state <= EXEC; 
 		end
-		FTHD1: begin
+		FTHD1: begin //Получаем второй байт
 			data[7:0] <= mem[ip];
 			if (ins[4]) begin
 				ip <= ip + 16'b1;
@@ -120,12 +109,12 @@ always @(posedge clk) begin
 			end
 			state <= EXEC;
 		end
-		FTHD2: begin
+		FTHD2: begin //Получаем третий байт
 			data[15:8] <= mem[ip];
 			state <= EXEC;
 		end
 		EXEC: begin
-			case(ins[4:3]) begin
+			case(ins[4:3])
 				2'b00: begin
 					case(ins[2:0])
 						OUT_R:
@@ -169,92 +158,83 @@ always @(posedge clk) begin
 							rflags[AF] <= RF[ins[7:5]] > data;
 						end
 						JF_C: begin
-							if (rflags[ins[6:5]] == ins[7])
+							if (rflags[ins[6:5]])
 								ip <= data;
 						end
 						JF_CM: begin
-							if (rflags[ins[6:5]] == ins[7])
+							if (rflags[ins[6:5]])
 								ip <= {mem[data+1], mem[data]};
 						end
 					endcase
 			    end
-			endcase
-			case(ins[4:0])
-				ZOI: begin
-					case(ins[7:5])
-						NOP: 
-							state <= IDLE;
-						HLT:
-							stop <= 1;
-						STFZ:
-							RF[0] <= rflags;
-						LDFZ:
-							rflags <= RF[0];
-					endcase
-				end
-				
-								
-				INS_C: 
-					case(ins[7:5])
-						OUT_C:
-							rout <= data;
-						OUT_CM:
-							rout <= {mem[data+1], mem[data]};
-						JMP_CM:begin
-							incip = 0;
-							ip <= {mem[data+1], mem[data]};
+			    2'b01: begin
+			    	case(ins[2:0])
+			    		MOV: begin
+							case(data[2:0])
+								MOV_R_R:
+									RF[ins[7:5]] <= RF[data[7:5]];
+								MOV_R_RM:
+									RF[ins[7:5]] <= mem[RF[data[7:5]]];
+								MOV_RM_R:
+									mem[RF[ins[7:5]]] <= RF[data[7:5]];
+							endcase
 						end
-						JMP_C:begin
-							incip = 0;
-							ip <= data;
+						ADD: begin
+							case(data[2:0])
+								ADD_R_R:
+									RF[ins[7:5]] <= RF[ins[7:5]] + RF[data[7:5]];
+								ADD_R_RM:
+									RF[ins[7:5]] <= RF[ins[7:5]] + mem[RF[data[7:5]]];
+								ADD_RM_R:
+									mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] + RF[data[7:5]];
+							endcase
 						end
-						IN_CM:begin
-							{mem[data+1], mem[data]} <= data_in;
-							rin <= 8'hFF;
+						SUB: begin
+							case(data[2:0])
+								SUB_R_R:
+									RF[ins[7:5]] <= RF[ins[7:5]] - RF[data[7:5]];
+								SUB_R_RM:
+									RF[ins[7:5]] <= RF[ins[7:5]] - mem[RF[data[7:5]]];
+								SUB_RM_R:
+									mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] - RF[data[7:5]];
+							endcase
 						end
-					endcase
-				INS_R_R:begin
-					case(data[4:0])
-						MOV_R_R:
-							RF[ins[7:5]] <= RF[data[7:5]];
-						MOV_R_RM:
-							RF[ins[7:5]] <= mem[RF[data[7:5]]];
-						MOV_RM_R:
-							mem[RF[ins[7:5]]] <= RF[data[7:5]];
-						ADD_R_R:
-							RF[ins[7:5]] <= RF[ins[7:5]] + RF[data[7:5]];
-						ADD_R_RM:
-							RF[ins[7:5]] <= RF[ins[7:5]] + mem[RF[data[7:5]]];
-						ADD_RM_R:
-							mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] + RF[data[7:5]];
-						SUB_R_R:
-							RF[ins[7:5]] <= RF[ins[7:5]] - RF[data[7:5]];
-						SUB_R_RM:
-							RF[ins[7:5]] <= RF[ins[7:5]] - mem[RF[data[7:5]]];
-						SUB_RM_R:
-							mem[RF[ins[7:5]]] <= mem[RF[ins[7:5]]] - RF[data[7:5]];
-						CMP_R_R:begin
-							rflags[ZF] <= RF[ins[7:5]] == RF[data[7:5]];
-							rflags[AF] <= RF[ins[7:5]] > RF[data[7:5]];
+						CMP:  begin
+							case(data[2:0])
+								CMP_R_R:begin
+									rflags[ZF] <= RF[ins[7:5]] == RF[data[7:5]];
+									rflags[AF] <= RF[ins[7:5]] > RF[data[7:5]];
+								end
+								CMP_R_RM:begin
+									rflags[ZF] <= RF[ins[7:5]] == mem[RF[data[7:5]]];
+									rflags[AF] <= RF[ins[7:5]] > mem[RF[data[7:5]]];
+								end
+								CMP_RM_R:begin
+									rflags[ZF] <= mem[RF[ins[7:5]]] == RF[data[7:5]];
+									rflags[AF] <= mem[RF[ins[7:5]]] > RF[data[7:5]];
+								end
+							endcase
 						end
-						CMP_R_RM:begin
-							rflags[ZF] <= RF[ins[7:5]] == mem[RF[data[7:5]]];
-							rflags[AF] <= RF[ins[7:5]] > mem[RF[data[7:5]]];
-						end
-						CMP_RM_R:begin
-							rflags[ZF] <= mem[RF[ins[7:5]]] == RF[data[7:5]];
-							rflags[AF] <= mem[RF[ins[7:5]]] > RF[data[7:5]];
+						LOG:  begin
+							case(data[2:0])
+								AND_R_R:
+									RF[ins[7:5]] <= RF[ins[7:5]] & RF[data[7:5]];
+								OR_R_R:
+									RF[ins[7:5]] <= RF[ins[7:5]] | RF[data[7:5]];
+								XOR_R_R:
+									RF[ins[7:5]] <= RF[ins[7:5]] ^ RF[data[7:5]];
+							endcase
 						end
 						JF_R: begin
-							ip <= RF[data[7:5]];
-							incip = !(rflags[ins[6:5]] == ins[7]);
+							if (rflags[ins[6:5]])
+								ip <= RF[data[7:5]];
 						end
 						JF_RM: begin
-							ip <= mem[RF[data[7:5]]];
-							incip = !(rflags[ins[6:5]] == ins[7]);
+							if (rflags[ins[6:5]])
+								ip <= mem[RF[data[7:5]]];
 						end
 					endcase
-				end
+			    end
 			endcase
 			if(ins[2:0] != 3'd4 || ins[2:0] != 3'd5) 
 				ip <= ip + incip;
