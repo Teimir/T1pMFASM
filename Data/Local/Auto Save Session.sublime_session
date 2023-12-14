@@ -2840,7 +2840,7 @@
 					"file": "/C/Users/sobak/Desktop/FASM_Simply_Packet_T1/Data/iverilog/bin/cpu.sv",
 					"settings":
 					{
-						"buffer_size": 6872,
+						"buffer_size": 6850,
 						"encoding": "UTF-8",
 						"line_ending": "Unix"
 					},
@@ -6475,6 +6475,14 @@
 							},
 							"AQAAAKAZAAAAAAAAoRkAAAAAAAAAAAAA",
 							"AQAAAAAAAAABAAAAoBkAAAAAAACgGQAAAAAAAAAAAAAAAPC/"
+						],
+						[
+							682,
+							2,
+							"left_delete",
+							null,
+							"AgAAAJsLAAAAAAAAmwsAAAAAAAAVAAAACQkJCQkJCXN0YXRlIDw9IElETEU7mgsAAAAAAACaCwAAAAAAAAEAAAAK",
+							"AQAAAAAAAAABAAAAsAsAAAAAAACbCwAAAAAAAAAAAAAAAPC/"
 						]
 					]
 				}
@@ -6878,15 +6886,15 @@
 							"semi_transient": false,
 							"settings":
 							{
-								"buffer_size": 6872,
+								"buffer_size": 6850,
 								"regions":
 								{
 								},
 								"selection":
 								[
 									[
-										6561,
-										6561
+										2970,
+										2970
 									]
 								],
 								"settings":
@@ -6895,8 +6903,8 @@
 									"tab_size": 4,
 									"translate_tabs_to_spaces": false
 								},
-								"translation.x": 100.0,
-								"translation.y": 5775.0,
+								"translation.x": 0.0,
+								"translation.y": 2775.0,
 								"zoom_level": 1.0
 							},
 							"stack_index": 0,
@@ -6950,7 +6958,7 @@
 				"height": 132.399993896
 			},
 			"pinned_build_system": "Packages/User/FASM.sublime-build",
-			"position": "0,0,1,-32000,-32000,-1,-1,1043,382,25,1847,7077ec5aa88c3b47bfb15d5dff0bf4fe",
+			"position": "0,0,1,-32000,-32000,-1,-1,1266,1035,248,2500,7077ec5aa88c3b47bfb15d5dff0bf4fe",
 			"project": "",
 			"replace":
 			{

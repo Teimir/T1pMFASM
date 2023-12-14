@@ -117,7 +117,6 @@ always @(posedge clk) begin
 							state <= IDLE;
 						HLT:
 							stop <= 1;
-							state <= IDLE;
 						STFZ:
 							RF[0] <= rflags;
 						LDFZ:
