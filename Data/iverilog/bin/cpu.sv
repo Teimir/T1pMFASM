@@ -8,7 +8,8 @@ module SimpleProcessor(
 integer i;
 reg [7:0] RF [0:7]; //Регистры
 
-reg [7:0] rout = 8'b0;
+//Регистры ввода и вывода, потом поменяю
+reg [7:0] rout = 8'b0; 
 reg [7:0] rin = 8'b0;
 
 //Регистры для работы с памятью
@@ -23,10 +24,12 @@ reg [2:0] state = IDLE; //Текущее состояние
 reg stop = 0; //Флаг остановки
 reg incip = 1; //Хз что это
 
+//Регистр флагов
 reg [2:0] rflags = 4'b00;
-	parameter ZF = 2'b00;
-	parameter AF = 2'b01;
+	parameter ZF = 2'b00; //адрес флага равенство
+	parameter AF = 2'b01; //адрес флага больше
  
+//Описание опкодов
 parameter IDLE = 3'b00;
 parameter FTHOP = 3'b01;
 parameter FTHD = 3'b10;
@@ -81,11 +84,15 @@ parameter CMP_CM_R = 8'h16;
 parameter JF_C = 8'h17;
 parameter JF_CM = 8'h18;
 
+
+//Описание работы
 always @(posedge clk) begin
-	incip = 1;
+	incip = 1; //Хз что это
+
+	//Конечный автомат
 	case(state)
-		IDLE: begin
-			if (stop == 0) 
+		IDLE: begin //Состояние покоя
+			if (stop == 0)  //Если остановки нет, то работаем
 				state <= FTHOP;
 		end
 		FTHOP: begin
