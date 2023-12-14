@@ -1,0 +1,1 @@
+setx Smpl_Data %~dp0 /m

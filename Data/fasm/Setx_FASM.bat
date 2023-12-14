@@ -1,0 +1,1 @@
+setx fasm %~dp0 /m

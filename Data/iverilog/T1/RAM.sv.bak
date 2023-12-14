@@ -1,0 +1,13 @@
+module RAM(
+	input [7:0] Address,
+	input [7:0] Data,
+	input WE,
+	input RE,
+	input CLK,
+	input SB,
+	output [7:0] datao);
+	
+
+
+	
+endmodule	

@@ -1,0 +1,61 @@
+module T1 (
+  input wire clk,
+  input wire reset,
+  input wire [7:0] instruction,
+  input wire [7:0] data_in,
+  output wire [7:0] data_out
+);
+
+  // Параметры конечного автомата
+  localparam IDLE = 2'b00;
+  localparam FETCH = 2'b01;
+  localparam EXECUTE = 2'b10;
+
+  // Внутренние регистры процессора и сигналы управления
+  reg [7:0] register;
+  reg [7:0] memory [255:0];
+  reg [1:0] state;
+  reg [7:0] instruction_reg;
+
+  // Присваивание начальных значений
+  initial begin
+    state <= IDLE;
+    register <= 8'b0;
+    instruction_reg <= 8'b0;
+
+    // Загрузка программы из файла в память
+    $readmemh("program.hex", memory);
+  end
+
+  always @(posedge clk, posedge reset) begin
+    if (reset)
+      state <= IDLE;
+    else
+      case (state)
+        IDLE:
+          state <= FETCH;
+        FETCH:
+          state <= EXECUTE;
+        EXECUTE:
+          state <= IDLE;
+      endcase
+  end
+
+  always @(posedge clk) begin
+    case (state)
+      IDLE:
+        // Ничего не делаем в состоянии IDLE
+      FETCH:
+        instruction_reg <= memory[register]; // Чтение инструкции из памяти
+      EXECUTE:
+        // Логика выполнения команд
+        case (instruction_reg[7:6])
+          2'b00: register <= data_in; // MOV
+          2'b01: register <= register + data_in; // ADD
+          2'b10: register <= register - data_in; // SUB
+          2'b11: data_out <= register; // OUTPUT
+        endcase
+    endcase
+  end
+
+endmodule

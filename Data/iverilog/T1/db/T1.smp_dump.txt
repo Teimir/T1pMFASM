@@ -1,0 +1,14 @@
+
+State Machine - |T1|state2
+Name state2.FMN state2.SMN state2.FHN state2.SHN 
+state2.SHN 0 0 0 0 
+state2.FHN 0 0 1 1 
+state2.SMN 0 1 0 1 
+state2.FMN 1 0 0 1 
+
+State Machine - |T1|ram:mem|state
+Name state.SetBank state.WriteData state.ReadData state.IDLE 
+state.IDLE 0 0 0 0 
+state.ReadData 0 0 1 1 
+state.WriteData 0 1 0 1 
+state.SetBank 1 0 0 1 

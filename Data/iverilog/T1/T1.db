@@ -1,0 +1,42 @@
+module T1_tb;
+
+  // Inputs
+  reg clk;
+  reg reset;
+
+  // Outputs
+  wire [3:0] led_out;
+  wire [3:0] DIG;
+  wire [7:0] SEG;
+
+  // Instantiate the module
+  T1 dut (
+    .clk(clk),
+    .reset(reset),
+    .led_out(led_out),
+    .DIG(DIG),
+    .SEG(SEG)
+  );
+
+  // Clock generation
+  always #5 clk = ~clk;
+
+  // Initialize inputs
+  initial begin
+    clk = 0;
+    reset = 0;
+    // Wait for a few clock cycles before applying reset
+    #10 reset = 1;
+    #10 reset = 0;
+    // Continue simulation for a few more clock cycles
+    repeat (20) #10;
+    // End simulation
+    $finish;
+  end
+
+  // Print Acc value
+  always @(posedge clk) begin
+    $display("Acc: %h", dut.Acc);
+  end
+
+endmodule

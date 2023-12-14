@@ -1,0 +1,83 @@
+{
+    "selector": "source.asm",
+    "quiet": true,
+    "shell": true,
+    "file_regex": "^(.*?) \\[(\\d+)\\].*():$",
+    "working_dir": "${project_path:${file_path}}",
+    "windows": {
+        "env": {
+            "PATH": "%Smpl_Data%\\FASM;C:\\WINDOWS\\system32;%Smpl_Data%",
+            "INCLUDE": "%Smpl_Data%\\FASM\\INCLUDE;%Smpl_Data%\\iverilog\\bin",
+        },
+        "encoding": "cp1251",
+    },
+    "cmd": [
+        "fasm", "-m", "131072",
+        "${project_base_name/$/.asm/:${file}}",
+    ],
+    "variants": [
+        {
+            "name": "Compile",
+            "cmd": [
+                "fasm", "-m", "131072",
+                "${project_base_name/$/.asm/:${file}}"
+            ],
+        },
+        {
+            "name": "Run",
+            "cmd": [
+                "fasm", "-m", "131072",
+                "${project_base_name/$/.asm/:${file}}",
+                "${project_base_name/$/.exe/:${file_base_name/$/.exe/}}",
+                "&&",
+                "start", "/w",
+                "${project_base_name/$/.exe/:${file_base_name/$/.exe/}}",
+            ],
+        },
+        {
+            "name": "Debug",
+            "cmd": [
+                "fasm", "-m", "131072",
+                "-s", "${project_base_name/$/.fas/:${file_base_name/$/.fas/}}",
+                "${project_base_name/$/.asm/:${file}}",
+                "${project_base_name/$/.exe/:${file_base_name/$/.exe/}}",
+                "&&",
+                "%Smpl_Data%\\ollydbg\\release\\x96dbg.exe",
+                "${project_path:${file_path}}/${project_base_name/$/.exe/:${file_base_name/$/.exe/}}",
+            ]
+        },
+        {
+            "name": "Compile T1",
+            "cmd": [
+                // "copy", 
+                // "${project_base_name/$/.asm/:${file}}", 
+                // "%Smpl_Data%\\iverilog\\bin\\output.asm",
+                // "&&",
+                "fasm", "-m", "131072",
+                "${project_base_name/$/.asm/:${file}}",
+                "&&",
+                "%Smpl_Data%\\iverilog\\bin\\BinToASCII.exe", 
+                "${project_base_name/$/.bin/:${file_base_name/$/.bin/}}", 
+                "%Smpl_Data%\\iverilog\\bin\\output.bin",
+                // "copy", 
+                // "%Smpl_Data%\\iverilog\\bin\\output.bin",
+                // "${project_base_name/$/.bin/:${file_base_name/$/.bin/}}", 
+            ],
+        },
+        {
+            "name": "Run T1",
+            "cmd": [
+                "fasm", "-m", "131072",
+                "${project_base_name/$/.asm/:${file}}",
+                "&&",
+                "%Smpl_Data%\\iverilog\\bin\\BinToASCII.exe", 
+                "${project_base_name/$/.bin/:${file_base_name/$/.bin/}}", 
+                "%Smpl_Data%\\iverilog\\bin\\output.bin",
+                "&&",
+                "start", "/w",
+                "%Smpl_Data%\\iverilog\\bin\\runprog.bat",
+                "%Smpl_Data%\\iverilog\\bin",
+            ],
+        },
+    ],
+}
