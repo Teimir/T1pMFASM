@@ -2,7 +2,7 @@ module SimpleProcessor(
 	input wire clk,
 	input wire rst,
 	input wire [31:0] data_in,
-	output wire [31:0] data_out
+	output reg [31:0] data_out,
 );
 
 integer i;
@@ -97,7 +97,7 @@ always @(posedge clk) begin
 		end
 		FTHOP: begin
 			ins <= mem[ip]; //Получение инструкции
-			if (mem[ip][4:0] > ZOI[4:0] || mem[ip] == JMP_RM || mem[ip] == JMP_R) begin
+			if (mem[ip][4:0] > ZOI[4:0]) begin
 				ip <= ip + 16'b1;
 				state <= FTHD;
 			end
@@ -124,9 +124,9 @@ always @(posedge clk) begin
 					endcase
 				end
 				OUT_R: 
-					rout <= RF[ins[7:5]];
+					data_out <= RF[ins[7:5]];
 				OUT_RM: 
-					rout <= mem[RF[ins[7:5]]];
+					data_out <= mem[RF[ins[7:5]]];
 				INC: 
 					RF[ins[7:5]] <= RF[ins[7:5]] + 8'b1;
 				DEC: 
@@ -192,9 +192,9 @@ always @(posedge clk) begin
 				INS_C: 
 					case(ins[7:5])
 						OUT_C:
-							rout <= data;
+							data_out <= data;
 						OUT_CM: 
-							rout <= mem[data];
+							data_out <= mem[data];
 						JMP_CM:begin
 							incip = 0;
 							ip <= {RF[0], mem[data]}; //Аналогично
@@ -258,9 +258,8 @@ always @(posedge clk) begin
 	endcase
 end
 
-assign data_out = rout;
-
 initial begin
+	data_out = 32'b0;
 	for(i = 0; i <= 7; i = i + 1) begin
 		RF[i] = 8'b0;
 	end

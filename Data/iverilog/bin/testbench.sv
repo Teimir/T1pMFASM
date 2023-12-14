@@ -3,10 +3,10 @@ module SimpleProcessor_tb;
     // Inputs
     reg clk;
     reg rst;
-    reg [7:0] data_in;
+    reg [31:0] data_in;
 
     // Outputs
-    wire [7:0] data_out;
+    wire [31:0] data_out;
 
     // Instantiate the SimpleProcessor module
     SimpleProcessor dut (
@@ -26,7 +26,7 @@ module SimpleProcessor_tb;
     // Monitor the result
     initial begin
         clk = 0;
-        $monitor("Time %t | Result: %h", $time, data_out);
+        $monitor("Time %t | Result: %h | Reg: %h", $time, data_out);
         #3000 $finish; // Finish the simulation
     end
 endmodule
