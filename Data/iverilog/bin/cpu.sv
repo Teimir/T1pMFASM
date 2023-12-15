@@ -86,7 +86,7 @@ parameter JF_RM = 5'b101;
 //ins[4:3] == 11 Трёхбайтовые
 parameter MOV_R_C = 5'b000;
 parameter ADD_R_C = 5'b001;
-parameter SUB_R_C = 5'b010;
+parameter MOV_RM_C = 5'b010;
 parameter CMP_R_C = 5'b011;
 parameter JF_C = 5'b100;
 parameter JMP_C = 5'b101;
@@ -177,8 +177,8 @@ always @(posedge clk) begin
 							{mem[data+1], mem[data]} <= RF[ins[7:5]];
 						ADD_R_C: 
 							RF[ins[7:5]] <= RF[ins[7:5]] + data;
-						SUB_R_C: 
-							RF[ins[7:5]] <= RF[ins[7:5]] - data;
+						MOV_RM_C: 
+							mem[RF[ins[7:5]]] <= data;
 						CMP_R_C:  begin
 							rflags[ZF] <= RF[ins[7:5]] == data;
 							rflags[AF] <= RF[ins[7:5]] > data;

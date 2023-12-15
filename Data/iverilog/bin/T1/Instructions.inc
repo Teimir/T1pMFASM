@@ -29,7 +29,7 @@ TWO_BYTE equ 01b
 		ADD_I_R_R equ 0x03
 		ADD_I_R_RM equ 0x04
 		ADD_I_RM_R equ 0x05 
-		SUB_I equ FIRST
+		SUB_I equ 1000b + FIRST
 		SUB_I_R_R equ 0x06
 		SUB_I_R_RM equ 0x07
 		SUB_I_RM_R equ 0x08 
@@ -62,7 +62,7 @@ TWO_BYTE equ 01b
 THREE_BYTE equ 11b
 	MOV_I_R_C EQU 000b
 	ADD_I_R_C equ 001b
-	SUB_I_R_C equ 010b
+	MOV_I_RM_C equ 010b
 	CMP_I_R_C equ 011b
 	JF_I_C equ 100b
 	JMP_I_C equ 101b
@@ -111,12 +111,12 @@ macro in arg1*{
 	INS_C arg1, IN_I, ONE_BYTE_1
 }
 
-macro inc arg1{
-	INS_C arg1, INC_I, ONE_BYTE_1
+macro dec arg1{
+	INS_C arg1, DEC_I, ONE_BYTE_1
 }
 
-macro dec arg{
-	INS_C arg1, DEC_I, ONE_BYTE_1
+macro inc arg1{
+	INS_C arg1, INC_I, ONE_BYTE_1
 }
 
 macro hlt{
@@ -136,36 +136,43 @@ macro LDFZ{
 }
 
 macro INS_R_R instr, arg1*, arg2*{
-local test1
-	test1 = 0
+local MemIns
+	MemIns = 0
 	match [reg1:num1], arg1\{
-		test1 = 1
+	local IsArg2Reg
+		IsArg2Reg = 0
+		MemIns = 1
 		match reg2:num2, arg2\\{
+			IsArg2Reg = 1
 			db instr + (TWO_BYTE shl 3) + (num1 shl 5)
 			db instr#\_RM_R + num2 shl 5
 		\\}
+		if IsArg2Reg == 0
+			db instr#\_RM_C + (THREE_BYTE shl 3) + (num1 shl 5)
+			dw const
+		end if
 		rept 0\{
 	\}
 	match [const], arg1\{
-		test1 = 1
+		MemIns = 1
 		match reg2:num2, arg2\\{
 			db instr#\_CM_R + (THREE_BYTE shl 3) + (num2 shl 5)
 			dw const
 		\\}
 	\}
-	if test1 = 0
+	if MemIns = 0
 		match reg1:num1, arg1\{
 			local default
 			default = 1
 			match [reg2:num2], arg2\\{
 				default = 0
-				db instr + (TWO_BYTE shl 3) + (num1 shl 5)
+				db (instr AND 111b) + (TWO_BYTE shl 3) + (num1 shl 5)
 				db instr#\_R_RM + num2 shl 5
 				rept 0\\{
 			\\}
 			match reg2:num2, arg2\\{
 				default = 0
-				db instr + (TWO_BYTE shl 3) + (num1 shl 5)
+				db (instr AND 111b) + (TWO_BYTE shl 3) + (num1 shl 5)
 				db instr#\_R_R + num2 shl 5
 			\\}
 			if default = 1
@@ -177,13 +184,15 @@ local test1
 				if default = 1
 					local MyArg, MyInstr
 					MyArg = arg2
-					MyInstr equ instr
-					if instr eq SUB_I
-						MyInstr equ ADD_I
-						MyArg = not MyArg + 1
+					define MyInstr instr
+					if instr = SUB_I
+						MyArg = (not arg2) + 1
+						db ADD_I_R_C + (THREE_BYTE shl 3) + (num1 shl 5)
+						dw MyArg
+					else
+						db instr#\_R_C + (THREE_BYTE shl 3) + (num1 shl 5)
+						dw arg2
 					end if
-					db instr#\_R_C + (THREE_BYTE shl 3) + (num1 shl 5)
-					dw arg2
 				end if
 			end if
 		\}
