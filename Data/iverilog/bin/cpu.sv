@@ -32,7 +32,7 @@ parameter FTHD1 = 3'b10;
 parameter FTHD2 = 3'b100;
 parameter EXEC = 3'b11;
 
-//ins[4:3] == 00 Однобайтовые
+//ins[4:3] == 01 Однобайтовые
 parameter OUT_R = 5'b000;
 parameter OUT_RM = 5'b0001;
 parameter JMP_R = 5'b100;
@@ -42,15 +42,16 @@ parameter DEC = 5'b011;
 parameter IN_R = 5'b110;
 parameter IN_RM = 5'b111;
 
-//ins[4:3] == 10 Еще набор однобайтовых
+//ins[4:3] == 11 Еще набор однобайтовых
 parameter NOT_R = 3'b000;
 parameter SPECIAL = 3'b001;		//здесь номер инструкции определяется по ins[7:5]
 	parameter HLT = 3'b000;
 	parameter STFZ = 3'b001;
-	parameter LDFZ = 3'b010;
-	parameter NOP = 3'b011;
+	//3'b10 - зарезервировано
+	parameter LDFZ = 3'b011;
+	parameter NOP = 3'b100;
 
-//ins[4:3] == 01 Двухбайтовые
+//ins[4:3] == 10 Двухбайтовые
 parameter FIRST = 5'b000;		//Первый набор инструкций
 	parameter MOV_R_R = 5'h00;
 	parameter MOV_R_RM = 5'h01;
@@ -83,7 +84,7 @@ parameter FIRST = 5'b000;		//Первый набор инструкций
 parameter JF_R = 5'b100;
 parameter JF_RM = 5'b101;
 
-//ins[4:3] == 11 Трёхбайтовые
+//ins[4:3] == 00 Трёхбайтовые
 parameter MOV_R_C = 5'b000;
 parameter ADD_R_C = 5'b001;
 parameter MOV_RM_C = 5'b010;
@@ -105,7 +106,7 @@ always @(posedge clk) begin
 		end
 		FTHOP: begin
 			ins <= mem[ip]; //Получаем инструкцию
-			if (mem[ip][3]) begin //байт больше чем 1
+			if (~mem[ip][3]) begin //байт больше чем 1
 				ip <= ip + 16'b1;
 				state <= FTHD1;
 			end
@@ -114,7 +115,7 @@ always @(posedge clk) begin
 		end
 		FTHD1: begin //Получаем второй байт
 			data[15:0] <= {mem[ip+1], mem[ip]};
-			if (ins[4]) begin
+			if (~ins[4]) begin
 				ip <= ip + 16'b1;
 				state <= FTHD2;
 			end
@@ -125,7 +126,7 @@ always @(posedge clk) begin
 		end
 		EXEC: begin
 			case(ins[4:3])
-				2'b10: begin
+				2'b11: begin
 					case(ins[2:0])
 						NOT_R:
 							RF[ins[7:5]] <= ~RF[ins[7:5]];
@@ -140,7 +141,7 @@ always @(posedge clk) begin
 							endcase
 					endcase
 				end
-				2'b00: begin
+				2'b01: begin
 					case(ins[2:0])
 						OUT_R:
 							rout <= RF[ins[7:5]];
@@ -166,7 +167,7 @@ always @(posedge clk) begin
 						end
 					endcase
 				end
-			    2'b11: begin
+			    2'b00: begin
 			    	case(ins[2:0])
 			    		MOV_R_C: 
 							RF[ins[7:5]] <= data;
@@ -191,7 +192,7 @@ always @(posedge clk) begin
 						end
 					endcase
 			    end
-			    2'b01: begin
+			    2'b10: begin
 			    	case(ins[2:0])
 			    		FIRST: begin
 							case(data[4:0])

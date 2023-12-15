@@ -1,4 +1,4 @@
-ONE_BYTE_1 equ 00b
+ONE_BYTE_1 equ 01b
 	OUT_I_R = 000b
 	OUT_I_RM = 0001b
 	JMP_I_R = 100b
@@ -7,7 +7,7 @@ ONE_BYTE_1 equ 00b
 	DEC_I_R = 011b
 	IN_I_R = 110b
 	IN_I_RM = 111b
-ONE_BYTE_2 equ 10b
+ONE_BYTE_2 equ 11b
 	SPECIAL equ 01b
 		HLT_I_R equ SPECIAL
 		HLT_I equ 0
@@ -19,7 +19,7 @@ ONE_BYTE_2 equ 10b
 		NOP_I equ 11b
 	LDFZ_I equ 010b + ONE_BYTE_1 shl 3
 	STFZ_I equ 011b + ONE_BYTE_1 shl 3
-TWO_BYTE equ 01b
+TWO_BYTE equ 10b
 	FIRST equ 0
 		MOV_I equ FIRST
 		MOV_I_R_R equ 0x00
@@ -59,7 +59,7 @@ TWO_BYTE equ 01b
 		SHL_I_RM_R equ 0x19
 	JF_R = 100b
 	JF_RM = 101b
-THREE_BYTE equ 11b
+THREE_BYTE equ 00b
 	MOV_I_R_C EQU 000b
 	ADD_I_R_C equ 001b
 	MOV_I_RM_C equ 010b
@@ -147,9 +147,9 @@ local MemIns
 			db instr + (TWO_BYTE shl 3) + (num1 shl 5)
 			db instr#\_RM_R + num2 shl 5
 		\\}
-		if IsArg2Reg == 0
+		if IsArg2Reg = 0
 			db instr#\_RM_C + (THREE_BYTE shl 3) + (num1 shl 5)
-			dw const
+			dw arg2
 		end if
 		rept 0\{
 	\}
