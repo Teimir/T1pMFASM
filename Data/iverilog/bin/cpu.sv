@@ -113,7 +113,7 @@ always @(posedge clk) begin
 				state <= EXEC; 
 		end
 		FTHD1: begin //Получаем второй байт
-			data[7:0] <= mem[ip];
+			data[15:0] <= {mem[ip+1], mem[ip]};
 			if (ins[4]) begin
 				ip <= ip + 16'b1;
 				state <= FTHD2;
@@ -121,7 +121,6 @@ always @(posedge clk) begin
 			state <= EXEC;
 		end
 		FTHD2: begin //Получаем третий байт
-			data[15:8] <= mem[ip];
 			state <= EXEC;
 		end
 		EXEC: begin
