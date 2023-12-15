@@ -32,12 +32,6 @@ parameter FTHD1 = 3'b10;
 parameter FTHD2 = 3'b100;
 parameter EXEC = 3'b11;
 
-//ins[4:3] == 10 Спец
-parameter NOP = 3'b000;		
-parameter HLT = 3'b001;		
-parameter STFZ = 3'b010;
-parameter LDFZ = 3'b011;
-
 //ins[4:3] == 00 Однобайтовые
 parameter OUT_R = 5'b000;
 parameter OUT_RM = 5'b0001;
@@ -47,6 +41,14 @@ parameter INC = 5'b010;
 parameter DEC = 5'b011;
 parameter IN_R = 5'b110;
 parameter IN_RM = 5'b111;
+
+//ins[4:3] == 10 Еще набор однобайтовых
+parameter NOT_R = 3'b000;
+parameter SPECIAL = 3'b001;		//здесь номер инструкции определяется по ins[7:5]
+	parameter HLT = 3'b000;
+	parameter STFZ = 3'b001;
+	parameter LDFZ = 3'b010;
+	parameter NOP = 3'b011;
 
 //ins[4:3] == 01 Двухбайтовые
 parameter FIRST = 5'b000;		//Первый набор инструкций
@@ -87,7 +89,7 @@ parameter ADD_R_C = 5'b001;
 parameter SUB_R_C = 5'b010;
 parameter CMP_R_C = 5'b011;
 parameter JF_C = 5'b100;
-parameter JF_CM = 5'b101;
+parameter JMP_C = 5'b101;
 parameter MOV_R_CM = 5'b110;
 parameter MOV_CM_R = 5'b111;
 
@@ -126,12 +128,17 @@ always @(posedge clk) begin
 			case(ins[4:3])
 				2'b10: begin
 					case(ins[2:0])
-						HLT:
-							stop <= 1;
-						LDFZ:
-							rflags <= RF[0][3:0];
-						STFZ:
-							RF[0] <= rflags;
+						NOT_R:
+							RF[ins[7:5]] <= ~RF[ins[7:5]];
+						SPECIAL:
+							case(ins[7:5])
+								HLT:
+									stop <= 1;
+								LDFZ:
+									rflags <= RF[0][3:0];
+								STFZ:
+									RF[0] <= rflags;
+							endcase
 					endcase
 				end
 				2'b00: begin
@@ -152,11 +159,11 @@ always @(posedge clk) begin
 							RF[ins[7:5]] <= RF[ins[7:5]] - 8'b1;
 						IN_R: begin
 							RF[ins[7:5]] <= data_in;
-							rin <= 8'hFF;
+							rin <= 16'hFFFF;
 						end
 						IN_RM: begin
 							mem[RF[ins[7:5]]] <= data_in;
-							rin <= 8'hFF;
+							rin <= 16'hFFFF;
 						end
 					endcase
 				end
@@ -180,9 +187,8 @@ always @(posedge clk) begin
 							if (rflags[ins[6:5]]==ins[7])
 								ip <= data;
 						end
-						JF_CM: begin
-							if (rflags[ins[6:5]]==ins[7])
-								ip <= {mem[data+1], mem[data]};
+						JMP_C: begin
+							ip <= data;
 						end
 					endcase
 			    end

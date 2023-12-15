@@ -1,9 +1,4 @@
-SPECIAL equ 10b
-	NOP_I equ 000b + SPECIAL shl 3
-	HLT_I equ 001b + SPECIAL shl 3
-	LDFZ_I equ 010b + SPECIAL shl 3
-	STFZ_I equ 011b + SPECIAL shl 3
-ONE_BYTE equ 00b
+ONE_BYTE_1 equ 00b
 	OUT_I_R = 000b
 	OUT_I_RM = 0001b
 	JMP_I_R = 100b
@@ -12,6 +7,18 @@ ONE_BYTE equ 00b
 	DEC_I_R = 011b
 	IN_I_R = 110b
 	IN_I_RM = 111b
+ONE_BYTE_2 equ 10b
+	SPECIAL equ 01b
+		HLT_I_R equ SPECIAL
+		HLT_I equ 0
+		STFZ_I_R equ SPECIAL
+		STFZ_I equ 01b
+		LDFZ_I_R equ SPECIAL
+		LDFZ_I equ 10b
+		NOP_I_R equ SPECIAL
+		NOP_I equ 11b
+	LDFZ_I equ 010b + ONE_BYTE_1 shl 3
+	STFZ_I equ 011b + ONE_BYTE_1 shl 3
 TWO_BYTE equ 01b
 	FIRST equ 0
 		MOV_I equ FIRST
@@ -54,82 +61,78 @@ TWO_BYTE equ 01b
 	JF_RM = 101b
 THREE_BYTE equ 11b
 	MOV_I_R_C EQU 000b
-	MOV_I_R_CM equ 110b
-	MOV_I_CM_R equ 111b
 	ADD_I_R_C equ 001b
 	SUB_I_R_C equ 010b
 	CMP_I_R_C equ 011b
 	JF_I_C equ 100b
-	JF_I_CM equ 101b
+	JMP_I_C equ 101b
+	MOV_I_R_CM equ 110b
+	MOV_I_CM_R equ 111b
 
 ; macro INS_R_R instr*, op1*, op2*{
 ; 	db INS_R_R + op1 shl 5
 ; 	db instr + op2 shl 5
 ; }
 
-macro nop{
-	db NOP_I
-}
-
-macro hlt{
-	db HLT_I
-}
-
-macro stfz{
-	db STFZ
-}
-
-macro LDFZ{
-	db LDFZ
-}
-
-macro hlt{
-	db HLT_I
-}
-
-macro INS_C arg1*, instr{
+macro INS_C arg1*, instr, set{
 local IsReg
 	IsReg = 0
 	match [reg:num], arg1\{
 		IsReg = 1
-		db instr#\_RM + ONE_BYTE shl 3 + num shl 5
+		db instr#\_RM + set shl 3 + num shl 5
 		rept 0\{
 	\}
 	match reg:num, arg1\{
 		IsReg = 1
-		db instr#\_R + ONE_BYTE shl 3 + num shl 5
+		db instr#\_R + set shl 3 + num shl 5
 	\}
 	if IsReg = 0
 		match [const], arg1\{
 			IsReg = 1
-			db instr#\_CM + THREE_BYTE shl 3 + num shl 5
+			db instr#\_CM + THREE_BYTE shl 3
 			dw const 
 		\}
 		if IsReg = 0
-			db instr#\_C + THREE_BYTE shl 3 + num shl 5
+			db instr#\_C + THREE_BYTE shl 3
 			dw arg1 
 		end if
 	end if
 }
 
 macro out arg1*{
-	INS_C arg1, OUT_I
+	INS_C arg1, OUT_I, ONE_BYTE_1
 }
 
 macro jmp arg1*{
-	INS_C arg1, JMP_I
+	INS_C arg1, JMP_I, ONE_BYTE_1
 }
 
 macro in arg1*{
-	INS_C arg1, IN_I
+	INS_C arg1, IN_I, ONE_BYTE_1
 }
 
 macro inc arg1{
-	INS_C arg1, INC_I
+	INS_C arg1, INC_I, ONE_BYTE_1
 }
 
 macro dec arg{
-	INS_C arg1, DEC_I
+	INS_C arg1, DEC_I, ONE_BYTE_1
+}
+
+macro hlt{
+	INS_C I:HLT_I, HLT_I, ONE_BYTE_2
+}
+
+macro nop{
+	INS_C I:NOP_I, NOP_I, ONE_BYTE_2
+}
+
+macro stfz{
+	INS_C I:STFZ_I, STFZ_I, ONE_BYTE_2
+}
+
+macro LDFZ{
+	INS_C I:LDFZ_I, NOP_I, ONE_BYTE_2
 }
 
 macro INS_R_R instr, arg1*, arg2*{
@@ -172,6 +175,13 @@ local test1
 					dw const
 				\\}
 				if default = 1
+					local MyArg, MyInstr
+					MyArg = arg2
+					MyInstr equ instr
+					if instr eq SUB_I
+						MyInstr equ ADD_I
+						MyArg = not MyArg + 1
+					end if
 					db instr#\_R_C + (THREE_BYTE shl 3) + (num1 shl 5)
 					dw arg2
 				end if
