@@ -240,23 +240,23 @@ local IsReg
 	IsReg = 0
 	match [reg:num], arg1\{
 		IsReg = 1
-		db JF_RM + TWO_BYTE shl 3 + 100b shl 5
+		db JF_RM + TWO_BYTE shl 3 + flags shl 5
 		db num shl 5
 		rept 0\{
 	\}
 	match reg:num, arg1\{
 		IsReg = 1
-		db JF_R + TWO_BYTE shl 3 + 100b shl 5
+		db JF_R + TWO_BYTE shl 3 + flags shl 5
 		db num shl 5
 	\}
 	if IsReg = 0
 		match [const], arg1\{
 			IsReg = 1
-			db JF_I_CM + THREE_BYTE shl 3 + 100b shl 5
+			db JF_I_CM + THREE_BYTE shl 3 + flags shl 5
 			dw const 
 		\}
 		if IsReg = 0
-			db JF_I_C + THREE_BYTE shl 3 + 100b shl 5
+			db JF_I_C + THREE_BYTE shl 3 + flags shl 5
 			dw arg1 
 		end if
 	end if

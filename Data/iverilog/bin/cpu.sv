@@ -106,7 +106,7 @@ always @(posedge clk) begin
 		end
 		FTHOP: begin
 			ins <= mem[ip]; //Получаем инструкцию
-			if (~mem[ip][3]) begin //байт больше чем 1
+			if (!mem[ip][3]) begin //байт больше чем 1
 				ip <= ip + 16'b1;
 				state <= FTHD1;
 			end
@@ -115,11 +115,12 @@ always @(posedge clk) begin
 		end
 		FTHD1: begin //Получаем второй байт
 			data[15:0] <= {mem[ip+1], mem[ip]};
-			if (~ins[4]) begin
+			if (!ins[4]) begin
 				ip <= ip + 16'b1;
 				state <= FTHD2;
 			end
-			state <= EXEC;
+			else
+				state <= EXEC;
 		end
 		FTHD2: begin //Получаем третий байт
 			state <= EXEC;
