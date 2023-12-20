@@ -47,7 +47,7 @@ parameter NOT_R = 3'b000;
 parameter SPECIAL = 3'b001;		//здесь номер инструкции определяется по ins[7:5]
 	parameter HLT = 3'b000;
 	parameter STFZ = 3'b001;
-	//3'b10 - зарезервировано
+	parameter OUTZ = 3'b10;
 	parameter LDFZ = 3'b011;
 	parameter NOP = 3'b100;
 
@@ -85,13 +85,13 @@ parameter JF_R = 5'b100;
 parameter JF_RM = 5'b101;
 
 //ins[4:3] == 00 Трёхбайтовые
-parameter MOV_R_C = 5'b000;
+parameter AND_R_C = 5'b000;
 parameter ADD_R_C = 5'b001;
 parameter MOV_RM_C = 5'b010;
 parameter CMP_R_C = 5'b011;
 parameter JF_C = 5'b100;
 parameter JMP_C = 5'b101;
-parameter MOV_R_CM = 5'b110;
+parameter OR_R_C = 5'b110;
 parameter MOV_CM_R = 5'b111;
 
 
@@ -137,6 +137,8 @@ always @(posedge clk) begin
 									stop <= 1;
 								LDFZ:
 									rflags <= RF[0][3:0];
+								OUTZ:
+									rout <= 0;
 								STFZ:
 									RF[0] <= rflags;
 							endcase
@@ -170,10 +172,10 @@ always @(posedge clk) begin
 				end
 			    2'b00: begin
 			    	case(ins[2:0])
-			    		MOV_R_C: 
-							RF[ins[7:5]] <= data;
-						MOV_R_CM: 
-							RF[ins[7:5]] <= {mem[data+1], mem[data]};
+			    		AND_R_C: 
+							RF[ins[7:5]] <= RF[ins[7:5]] & data;
+						OR_R_C: 
+							RF[ins[7:5]] <= RF[ins[7:5]] | data;
 						MOV_CM_R: 
 							{mem[data+1], mem[data]} <= RF[ins[7:5]];
 						ADD_R_C: 
@@ -270,7 +272,7 @@ always @(posedge clk) begin
 					endcase
 			    end
 			endcase
-			if((ins[2:0] != 3'd4 && ins[2:0] != 3'd5) || (rflags[ins[6:5]]!=ins[7] && ins[4:0] != JMP_C)) 
+			if((ins[2:0] != 3'd4 && ins[2:0] != 3'd5) || (rflags[ins[6:5]]!=ins[7] && ins[7:0] != JMP_C)) 
 				ip <= ip + 8'b1;
 			state <= IDLE;
 		end

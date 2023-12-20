@@ -17,8 +17,7 @@ ONE_BYTE_2 equ 11b
 		LDFZ_I equ 10b
 		NOP_I_R equ SPECIAL
 		NOP_I equ 11b
-	LDFZ_I equ 010b + ONE_BYTE_1 shl 3
-	STFZ_I equ 011b + ONE_BYTE_1 shl 3
+	NOT_I_R equ 00b
 TWO_BYTE equ 10b
 	FIRST equ 0
 		MOV_I equ FIRST
@@ -60,13 +59,13 @@ TWO_BYTE equ 10b
 	JF_R = 100b
 	JF_RM = 101b
 THREE_BYTE equ 00b
-	MOV_I_R_C EQU 000b
+	AND_I_R_C EQU 000b
 	ADD_I_R_C equ 001b
 	MOV_I_RM_C equ 010b
 	CMP_I_R_C equ 011b
 	JF_I_C equ 100b
 	JMP_I_C equ 101b
-	MOV_I_R_CM equ 110b
+	OR_I_R_C equ 110b
 	MOV_I_CM_R equ 111b
 
 ; macro INS_R_R instr*, op1*, op2*{
@@ -131,8 +130,12 @@ macro stfz{
 	INS_C I:STFZ_I, STFZ_I, ONE_BYTE_2
 }
 
-macro LDFZ{
+macro ldfz{
 	INS_C I:LDFZ_I, NOP_I, ONE_BYTE_2
+}
+
+macro not arg1{
+	INS_C arg1, NOT_I, ONE_BYTE_2
 }
 
 macro INS_R_R instr, arg1*, arg2*{
@@ -202,6 +205,34 @@ local MemIns
 
 macro mov arg1*, arg2*{
 	INS_R_R MOV_I, arg1, arg2
+}
+
+macro mov arg1*, arg2*{
+local IsNoChg
+	IsNoChg = 1
+	match [reg:num], arg1\{
+			rept 0\{
+	\}
+	match reg:num, arg1\{
+		IsNoChg = 2
+		match [reg:num], arg2\\{
+			IsNoChg = 1
+			rept 0\\{
+		\\}
+		match [const], arg2\\{
+			sub arg1, arg1
+			add arg1, const
+			mov arg1, [arg1]
+			IsNoChg = 0
+		\\}
+		if IsNoChg = 2
+			sub arg1, arg1
+			add arg1, arg2
+		end if
+	\}
+	if IsNoChg = 1
+		mov arg1, arg2
+	end if
 }
 
 macro add arg1*, arg2*{

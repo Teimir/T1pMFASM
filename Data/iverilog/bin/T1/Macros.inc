@@ -3,6 +3,5 @@ macro endprog{
 }
 
 macro entry lbl*{
-	mov r:6, lbl
-	jmp r:6
+	jmp lbl
 }

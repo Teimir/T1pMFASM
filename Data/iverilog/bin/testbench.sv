@@ -27,6 +27,6 @@ module SimpleProcessor_tb;
     initial begin
         clk = 0;
         $monitor("Time %t | Result: %h", $time, data_out);
-        #3000 $finish; // Finish the simulation
+        #100000 $finish; // Finish the simulation
     end
 endmodule
