@@ -138,6 +138,7 @@ macro LDFZ{
 macro INS_R_R instr, arg1*, arg2*{
 local MemIns
 	MemIns = 0
+	_instr = instr
 	match [reg1:num1], arg1\{
 	local IsArg2Reg
 		IsArg2Reg = 0
@@ -166,13 +167,13 @@ local MemIns
 			default = 1
 			match [reg2:num2], arg2\\{
 				default = 0
-				db (instr AND 111b) + (TWO_BYTE shl 3) + (num1 shl 5)
+				db (_instr AND 0111b) + (TWO_BYTE shl 3) + (num1 shl 5)
 				db instr#\_R_RM + num2 shl 5
 				rept 0\\{
 			\\}
 			match reg2:num2, arg2\\{
 				default = 0
-				db (instr AND 111b) + (TWO_BYTE shl 3) + (num1 shl 5)
+				db (_instr AND 0111b) + (TWO_BYTE shl 3) + (num1 shl 5)
 				db instr#\_R_R + num2 shl 5
 			\\}
 			if default = 1

@@ -270,7 +270,7 @@ always @(posedge clk) begin
 					endcase
 			    end
 			endcase
-			if(ins[2:0] != 3'd4 && ins[2:0] != 3'd5) 
+			if((ins[2:0] != 3'd4 && ins[2:0] != 3'd5) || (rflags[ins[6:5]]!=ins[7] && ins[4:0] != JMP_C)) 
 				ip <= ip + 8'b1;
 			state <= IDLE;
 		end
