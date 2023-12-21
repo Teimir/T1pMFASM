@@ -47,7 +47,7 @@
             ]
         },
         {
-            "name": "Compile T1",
+            "name": "Compile T2",
             "cmd": [
                 // "copy", 
                 // "${project_base_name/$/.asm/:${file}}", 
@@ -65,7 +65,7 @@
             ],
         },
         {
-            "name": "Run T1",
+            "name": "Run T2",
             "cmd": [
                 "fasm", "-m", "131072",
                 "${project_base_name/$/.asm/:${file}}",
@@ -76,6 +76,21 @@
                 "&&",
                 "start", "/w",
                 "%Smpl_Data%\\iverilog\\bin\\runprog.bat",
+                "%Smpl_Data%\\iverilog\\bin",
+            ],
+        },
+        {
+            "name": "Run T2(2.0)",
+            "cmd": [
+                "fasm", "-m", "131072",
+                "${project_base_name/$/.asm/:${file}}",
+                "&&",
+                "%Smpl_Data%\\iverilog\\bin\\BinToASCII.exe", 
+                "${project_base_name/$/.bin/:${file_base_name/$/.bin/}}", 
+                "%Smpl_Data%\\iverilog\\bin\\output.bin",
+                "&&",
+                "start", "/w",
+                "%Smpl_Data%\\iverilog\\bin\\runprog_2.0.bat",
                 "%Smpl_Data%\\iverilog\\bin",
             ],
         },

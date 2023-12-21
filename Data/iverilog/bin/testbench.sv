@@ -4,16 +4,20 @@ module SimpleProcessor_tb;
     reg clk;
     reg rst;
     reg [15:0] data_in;
+    reg [15:0] mem_sel;
 
     // Outputs
     wire [15:0] data_out;
+    wire [15:0] mem_out;
 
     // Instantiate the SimpleProcessor module
     SimpleProcessor dut (
         .clk(clk),
         .rst(rst),
         .data_in(data_in),
-        .data_out(data_out)
+        .mem_sel(mem_sel),
+        .data_out(data_out),
+        .mem_out(mem_out)
     );
 
     // Clock generation
