@@ -14,9 +14,11 @@ ONE_BYTE_2 equ 11b
 		STFZ_I_R equ SPECIAL
 		STFZ_I equ 01b
 		LDFZ_I_R equ SPECIAL
-		LDFZ_I equ 10b
+		OUTZ_I_R equ SPECIAL
+		OUTZ_I equ 10b
+		LDFZ_I equ 11b
 		NOP_I_R equ SPECIAL
-		NOP_I equ 11b
+		NOP_I equ 100b
 	NOT_I_R equ 00b
 TWO_BYTE equ 10b
 	FIRST equ 0
@@ -130,8 +132,12 @@ macro stfz{
 	INS_C I:STFZ_I, STFZ_I, ONE_BYTE_2
 }
 
+macro outz{
+	INS_C I:OUTZ_I, OUTZ_I, ONE_BYTE_2
+}
+
 macro ldfz{
-	INS_C I:LDFZ_I, NOP_I, ONE_BYTE_2
+	INS_C I:LDFZ_I, LDFZ_I, ONE_BYTE_2
 }
 
 macro not arg1{
@@ -217,17 +223,19 @@ local IsNoChg
 		IsNoChg = 2
 		match [reg:num], arg2\\{
 			IsNoChg = 1
-			rept 0\\{
-		\\}
-		match [const], arg2\\{
-			sub arg1, arg1
-			add arg1, const
-			mov arg1, [arg1]
-			IsNoChg = 0
+			; rept 0\\{
 		\\}
 		if IsNoChg = 2
-			sub arg1, arg1
-			add arg1, arg2
+			match [const], arg2\\{
+				sub arg1, arg1
+				add arg1, const
+				mov arg1, [arg1]
+				IsNoChg = 0
+			\\}
+			if IsNoChg = 2
+				sub arg1, arg1
+				add arg1, arg2
+			end if
 		end if
 	\}
 	if IsNoChg = 1
